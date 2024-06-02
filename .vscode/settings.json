@@ -8,6 +8,9 @@
         "typeinfo": "c",
         "windowsx.h": "c",
         "vulkan_platform.h": "c",
-        "renderer_frontend.h": "c"
+        "renderer_frontend.h": "c",
+        "asserts.h": "c",
+        "logger.h": "c",
+        "system_error": "c"
     }
 }
