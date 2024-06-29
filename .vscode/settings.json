@@ -17,6 +17,7 @@
         "entry.h": "c",
         "game_types.h": "c",
         "kmemory.h": "c",
-        "array": "cpp"
+        "array": "cpp",
+        "event.h": "c"
     }
 }
