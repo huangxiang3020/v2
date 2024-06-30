@@ -14,7 +14,7 @@ enum {
     DARRAY_CAPACITY,
     DARRAY_LENGTH,
     DARRAY_STRIDE,
-    DARRAY_FIELD_LENGTH   
+    DARRAY_FIELD_LENGTH
 };
 
 KAPI void* _darray_create(u64 length, u64 stride);

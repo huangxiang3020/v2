@@ -1,8 +1,7 @@
-#include "game.h"
-
+#include <core/kmemory.h>
 #include <entry.h>
 
-#include <core/kmemory.h>
+#include "game.h"
 
 b8 create_game(game* out_game) {
     out_game->app_config.start_pos_x = 100;
