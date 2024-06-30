@@ -1,12 +1,11 @@
 #include "application.h"
-#include "game_types.h"
 
-#include "logger.h"
-
-#include "platform/platform.h"
-#include "core/kmemory.h"
 #include "core/event.h"
 #include "core/input.h"
+#include "core/kmemory.h"
+#include "game_types.h"
+#include "logger.h"
+#include "platform/platform.h"
 
 typedef struct application_state {
     game* game_inst;
@@ -169,7 +168,7 @@ b8 application_on_button(u16 code, void* sender, void* listener_inst, event_cont
         } else if (button_code == BUTTON_MIDDLE) {
             KDEBUG("Button Middle pressed in window.");
         }
-    } else if (code == EVENT_CODE_BUTTON_RELEASED) { 
+    } else if (code == EVENT_CODE_BUTTON_RELEASED) {
         u16 button_code = context.data.u16[0];
         if (button_code == BUTTON_LEFT) {
             KDEBUG("Button Left released in window.");
@@ -187,4 +186,3 @@ b8 application_on_mouse_wheel(u16 code, void* sender, void* listener_inst, event
     KDEBUG("Mouse wheel delta: %d", delta);
     return FALSE;
 }
-
