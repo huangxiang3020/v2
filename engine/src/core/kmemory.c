@@ -1,11 +1,12 @@
 #include "kmemory.h"
 
+#include "core/kstring.h"
 #include "core/logger.h"
 #include "platform/platform.h"
 
 // TODO: Custom string lib
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 struct memory_stats {
     u64 total_allocated;
@@ -42,7 +43,7 @@ void shutdown_memory() {
 
 void* kallocate(u64 size, memory_tag tag) {
     if (tag == MEMORY_TAG_UNKNOWN) {
-       KWARN("kallocate called using MEMORY_TAG_UNKNOWN. Re-class this allocation.");
+        KWARN("kallocate called using MEMORY_TAG_UNKNOWN. Re-class this allocation.");
     }
 
     stats.total_allocated += size;
@@ -107,7 +108,6 @@ char* get_memory_usage_str() {
         i32 length = snprintf(buffer + offset, 8000, "  %s: %.2f%s\n", memory_tag_strings[i], amount, unit);
         offset += length;
     }
-    char* out_string = _strdup(buffer);
+    char* out_string = string_dulicate(buffer);
     return out_string;
 }
-
