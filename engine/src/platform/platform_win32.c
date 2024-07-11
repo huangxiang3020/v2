@@ -3,12 +3,13 @@
 // Windows platform layer.
 #if KPLATFORM_WINDOWS
 
-#include "core/logger.h"
-#include "core/input.h"
-
+#include <stdio.h>
 #include <windows.h>
 #include <windowsx.h>
-#include <stdio.h>
+
+#include "containers/darray.h"
+#include "core/input.h"
+#include "core/logger.h"
 
 typedef struct internal_state {
     HINSTANCE h_instance;
@@ -21,14 +22,14 @@ static LARGE_INTEGER start_time;
 LRESULT CALLBACK win32_process_message(HWND hwnd, u32 msg, WPARAM w_param, LPARAM l_param);
 
 b8 platform_startup(
-    platform_state* plat_state,
-    const char* application_name,
+    platform_state *plat_state,
+    const char *application_name,
     i32 x,
     i32 y,
     i32 width,
     i32 height) {
     plat_state->internal_state = malloc(sizeof(internal_state));
-    internal_state* state = (internal_state*)plat_state->internal_state;
+    internal_state *state = (internal_state *)plat_state->internal_state;
 
     state->h_instance = GetModuleHandle(0);
 
@@ -183,6 +184,10 @@ void platform_sleep(u64 ms) {
     Sleep(ms);
 }
 
+void platform_get_required_extension_names(const char ***names_darray) {
+    darray_push(*names_darray, &"VK_KHR_win32_surface");
+}
+
 LRESULT CALLBACK win32_process_message(HWND hwnd, u32 msg, WPARAM w_param, LPARAM l_param) {
     switch (msg) {
         case WM_ERASEBKGND:
@@ -218,7 +223,7 @@ LRESULT CALLBACK win32_process_message(HWND hwnd, u32 msg, WPARAM w_param, LPARA
             // Mouse move
             i32 x_position = GET_X_LPARAM(l_param);
             i32 y_position = GET_Y_LPARAM(l_param);
-            
+
             // Pass over to the input subsystem.
             input_process_mouse_move(x_position, y_position);
         } break;
@@ -263,4 +268,4 @@ LRESULT CALLBACK win32_process_message(HWND hwnd, u32 msg, WPARAM w_param, LPARA
     return DefWindowProcA(hwnd, msg, w_param, l_param);
 }
 
-#endif // KPLATFORM_WINDOWS
+#endif  // KPLATFORM_WINDOWS
