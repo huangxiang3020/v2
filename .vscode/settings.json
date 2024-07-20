@@ -52,6 +52,8 @@
         "game_types.h": "c",
         "kmemory.h": "c",
         "array": "cpp",
-        "event.h": "c"
+        "event.h": "c",
+        "vulkan_win32.h": "c",
+        "vulkan_types.inl": "c"
     }
 }
