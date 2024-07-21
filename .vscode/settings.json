@@ -54,6 +54,9 @@
         "array": "cpp",
         "event.h": "c",
         "vulkan_win32.h": "c",
-        "vulkan_types.inl": "c"
+        "vulkan_types.inl": "c",
+        "vulkan_image.h": "c",
+        "memory": "c",
+        "xmemory": "c"
     }
 }
