@@ -120,7 +120,18 @@ b8 vulkan_device_create(vulkan_context* context) {
         context->device.transfer_queue_index,
         0,
         &context->device.transfer_queue);
+    KINFO("Queues obtained.");
 
+    // Create command pool for graphics queue.
+    VkCommandPoolCreateInfo pool_create_info = {VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO};
+    pool_create_info.queueFamilyIndex = context->device.graphics_queue_index;
+    pool_create_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    VK_CHECK(vkCreateCommandPool(
+        context->device.logical_device,
+        &pool_create_info,
+        context->allocator,
+        &context->device.graphics_command_pool));
+    KINFO("Graphics command pool created.");
     return TRUE;
 }
 
@@ -129,6 +140,11 @@ void vulkan_device_destroy(vulkan_context* context) {
     context->device.graphic_queue = 0;
     context->device.present_queue = 0;
     context->device.transfer_queue = 0;
+
+    vkDestroyCommandPool(
+        context->device.logical_device,
+        context->device.graphics_command_pool,
+        context->allocator);
 
     // Destroy logical device
     KINFO("Destroying logical device...");
@@ -223,7 +239,7 @@ b8 vulkan_device_detect_depth_format(vulkan_device* device) {
         VK_FORMAT_D32_SFLOAT,
         VK_FORMAT_D32_SFLOAT_S8_UINT,
         VK_FORMAT_D24_UNORM_S8_UINT};
-    
+
     u32 flags = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
     for (u64 i = 0; i < candidate_count; i++) {
         VkFormatProperties properties;
