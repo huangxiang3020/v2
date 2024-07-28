@@ -57,6 +57,8 @@
         "vulkan_types.inl": "c",
         "vulkan_image.h": "c",
         "memory": "c",
-        "xmemory": "c"
+        "xmemory": "c",
+        "vector": "c",
+        "xstring": "c"
     }
 }
