@@ -26,7 +26,7 @@ typedef struct vulkan_device {
     i32 present_queue_index;
     i32 transfer_queue_index;
 
-    VkQueue graphic_queue;
+    VkQueue graphics_queue;
     VkQueue present_queue;
     VkQueue transfer_queue;
 
@@ -114,6 +114,14 @@ typedef struct vulkan_context {
 
     // The framebuffer's current height.
     u32 framebuffer_height;
+
+    // Current generation of framebuffer size. If it does not match framebuffer_size_last_generation,
+    // a new one should be generated.
+    u64 framebuffer_size_generation;
+
+    // The generation of the framebuffer when it was last created. Set to framebuffer_size_generation
+    // when updated.
+    u64 framebuffer_size_last_generation;
 
     VkInstance instance;
     VkAllocationCallbacks* allocator;

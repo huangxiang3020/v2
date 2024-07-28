@@ -107,7 +107,7 @@ b8 vulkan_device_create(vulkan_context* context) {
         context->device.logical_device,
         context->device.graphics_queue_index,
         0,
-        &context->device.graphic_queue);
+        &context->device.graphics_queue);
 
     vkGetDeviceQueue(
         context->device.logical_device,
@@ -137,7 +137,7 @@ b8 vulkan_device_create(vulkan_context* context) {
 
 void vulkan_device_destroy(vulkan_context* context) {
     // Unset queues.
-    context->device.graphic_queue = 0;
+    context->device.graphics_queue = 0;
     context->device.present_queue = 0;
     context->device.transfer_queue = 0;
 

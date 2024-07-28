@@ -28,6 +28,7 @@ b8 application_on_event(u16 code, void* sender, void* listener_inst, event_conte
 b8 application_on_key(u16 code, void* sender, void* listener_inst, event_context context);
 b8 application_on_button(u16 code, void* sender, void* listener_inst, event_context context);
 b8 application_on_mouse_wheel(u16 code, void* sender, void* listener_inst, event_context context);
+b8 application_on_resized(u16 code, void* sender, void* listener_inst, event_context context);
 
 b8 application_create(game* game_inst) {
     if (initialized) {
@@ -55,6 +56,7 @@ b8 application_create(game* game_inst) {
     event_register(EVENT_CODE_BUTTON_PRESSED, 0, application_on_button);
     event_register(EVENT_CODE_BUTTON_RELEASED, 0, application_on_button);
     event_register(EVENT_CODE_MOUSE_WHEEL, 0, application_on_mouse_wheel);
+    event_register(EVENT_CODE_RESIZED, 0, application_on_resized);
 
     if (!platform_startup(
             &app_state.platform,
@@ -154,6 +156,7 @@ b8 application_run() {
     event_unregister(EVENT_CODE_BUTTON_PRESSED, 0, application_on_button);
     event_unregister(EVENT_CODE_BUTTON_RELEASED, 0, application_on_button);
     event_unregister(EVENT_CODE_MOUSE_WHEEL, 0, application_on_mouse_wheel);
+    event_unregister(EVENT_CODE_RESIZED, 0, application_on_resized);
     event_shutdown();
     input_shutdown();
     renderer_shutdown();
@@ -234,5 +237,37 @@ b8 application_on_button(u16 code, void* sender, void* listener_inst, event_cont
 b8 application_on_mouse_wheel(u16 code, void* sender, void* listener_inst, event_context context) {
     i8 delta = context.data.i8[0];
     KDEBUG("Mouse wheel delta: %d", delta);
+    return FALSE;
+}
+
+b8 application_on_resized(u16 code, void* sender, void* listener_inst, event_context context) {
+    if (code == EVENT_CODE_RESIZED) {
+        u16 width = context.data.u16[0];
+        u16 height = context.data.u16[1];
+
+        // Check if different. If so, trigger a resize event.
+        if (width != app_state.width || height != app_state.height) {
+            app_state.width = width;
+            app_state.height = height;
+
+            KDEBUG("Window resize: %i, %i", width, height);
+
+            // Handle minimization
+            if (width == 0 || height == 0) {
+                KINFO("Window minimized, suspending application.");
+                app_state.is_suspended = TRUE;
+                return TRUE;
+            } else {
+                if (app_state.is_suspended) {
+                    KINFO("Window restored, resuming application.");
+                    app_state.is_suspended = FALSE;
+                }
+                app_state.game_inst->on_resize(app_state.game_inst, width, height);
+                renderer_on_resized(width, height);
+            }
+        }
+    }
+
+    // Event purposely not handled to allow other listeners to get this.
     return FALSE;
 }
