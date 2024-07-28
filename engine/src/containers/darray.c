@@ -47,7 +47,7 @@ void* _darray_resize(void* array) {
 void* _darray_push(void* array, const void* value_ptr) {
     u64 length = darray_length(array);
     u64 stride = darray_stride(array);
-    if (length > darray_capacity(array)) {
+    if (length >= darray_capacity(array)) {
         array = _darray_resize(array);
     }
 

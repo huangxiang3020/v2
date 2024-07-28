@@ -12,7 +12,7 @@ b8 initialize_logging() {
     return TRUE;
 }
 
-void shutter_logging() {
+void shutdown_logging() {
     // TODO: cleanup logging/write queued entries.
 }
 
