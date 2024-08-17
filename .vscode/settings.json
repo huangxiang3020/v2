@@ -59,6 +59,9 @@
         "memory": "c",
         "xmemory": "c",
         "vector": "c",
-        "xstring": "c"
+        "xstring": "c",
+        "linear_allocator_tests.h": "c",
+        "clock.h": "c",
+        "defines.h": "c"
     }
 }

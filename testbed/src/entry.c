@@ -16,6 +16,6 @@ b8 create_game(game* out_game) {
 
     // Create the game state.
     out_game->state = kallocate(sizeof(game_state), MEMORY_TAG_GAME);
-
-    return TRUE;
+    
+    return true;
 }
