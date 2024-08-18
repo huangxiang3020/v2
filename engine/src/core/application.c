@@ -66,15 +66,15 @@ b8 application_create(game* game_inst) {
 
     // Initialize subsystems
 
-    // Memory
-    memory_system_initialize(&app_state->memory_system_memory_requirement, 0);
-    app_state->memory_system_state = linear_allocator_allocate(&app_state->systems_allocator, app_state->memory_system_memory_requirement);
-    memory_system_initialize(&app_state->memory_system_memory_requirement, app_state->memory_system_state);
-
     // Events
     event_system_initialize(&app_state->event_system_memory_requirement, 0);
     app_state->event_system_state = linear_allocator_allocate(&app_state->systems_allocator, app_state->event_system_memory_requirement);
     event_system_initialize(&app_state->event_system_memory_requirement, app_state->event_system_state);
+    
+    // Memory
+    memory_system_initialize(&app_state->memory_system_memory_requirement, 0);
+    app_state->memory_system_state = linear_allocator_allocate(&app_state->systems_allocator, app_state->memory_system_memory_requirement);
+    memory_system_initialize(&app_state->memory_system_memory_requirement, app_state->memory_system_state);
 
     // Logging
     initialize_logging(&app_state->logging_system_memory_requirement, 0);
@@ -102,7 +102,7 @@ b8 application_create(game* game_inst) {
     app_state->platform_system_state = linear_allocator_allocate(&app_state->systems_allocator, app_state->platform_system_memory_requirement);
     if (!platform_system_startup(
             &app_state->platform_system_memory_requirement,
-            &app_state->platform_system_state,
+            app_state->platform_system_state,
             game_inst->app_config.name,
             game_inst->app_config.start_pos_x,
             game_inst->app_config.start_pos_y,
