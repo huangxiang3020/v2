@@ -62,6 +62,8 @@
         "xstring": "c",
         "linear_allocator_tests.h": "c",
         "clock.h": "c",
-        "defines.h": "c"
+        "defines.h": "c",
+        "xutility": "c",
+        "xtr1common": "c"
     }
 }

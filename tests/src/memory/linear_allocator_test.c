@@ -7,10 +7,10 @@
 
 u8 linear_allocator_should_create_and_destroy() {
     linear_allocator alloc;
-    linear_allocator_create(sizeof(64), 0, &alloc);
+    linear_allocator_create(sizeof(u64), 0, &alloc);
 
     expect_should_not_be(0, alloc.memory);
-    expect_should_be(sizeof(64), alloc.total_size);
+    expect_should_be(sizeof(u64), alloc.total_size);
     expect_should_be(0, alloc.allocated);
 
     linear_allocator_destroy(&alloc);
@@ -24,12 +24,12 @@ u8 linear_allocator_should_create_and_destroy() {
 
 u8 linear_allocator_single_allocation_all_space() {
     linear_allocator alloc;
-    linear_allocator_create(sizeof(64), 0, &alloc);
+    linear_allocator_create(sizeof(u64), 0, &alloc);
 
     void* block = linear_allocator_allocate(&alloc, sizeof(u64));
 
     expect_should_not_be(0, block);
-    expect_should_be(sizeof(64), alloc.allocated);
+    expect_should_be(sizeof(u64), alloc.allocated);
 
     linear_allocator_destroy(&alloc);
 
@@ -39,11 +39,11 @@ u8 linear_allocator_single_allocation_all_space() {
 u8 linear_allocator_multi_allocation_all_space() {
     u64 max_allocs = 1024;
     linear_allocator alloc;
-    linear_allocator_create(sizeof(64) * max_allocs, 0, &alloc);
+    linear_allocator_create(sizeof(u64) * max_allocs, 0, &alloc);
 
     void* block;
     for (u64 i = 0; i < max_allocs; i++) {
-        block = linear_allocator_allocate(&alloc, sizeof(64));
+        block = linear_allocator_allocate(&alloc, sizeof(u64));
 
         expect_should_not_be(0, block);
         expect_should_be(sizeof(u64) * (i + 1), alloc.allocated);
