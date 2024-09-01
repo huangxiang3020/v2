@@ -64,6 +64,8 @@
         "clock.h": "c",
         "defines.h": "c",
         "xutility": "c",
-        "xtr1common": "c"
+        "xtr1common": "c",
+        "stat.h": "c",
+        "vulkan_object_shader.h": "c"
     }
 }

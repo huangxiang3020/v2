@@ -26,7 +26,7 @@ b8 initialize_logging(u64* memory_requirement, void* state) {
     return true;
 }
 
-void shutdown_logging() {
+void shutdown_logging(void* state) {
     // TODO: cleanup logging/write queued entries.
     state_ptr = 0;
 }
