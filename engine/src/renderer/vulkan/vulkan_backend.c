@@ -39,6 +39,15 @@ void regenerate_framebuffers(renderer_backend* backend, vulkan_swapchain* swapch
 
 b8 recreate_swapchain(renderer_backend* backend);
 
+void upload_data_range(vulkan_context* context, VkCommandPool pool, VkFence fence, VkQueue queue, vulkan_buffer* buffer, u64 offset, u64 size, void* data) {
+    VkBufferUsageFlagBits flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    vulkan_buffer staging;
+    vulkan_buffer_create(context, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, flags, true, &staging);
+    vulkan_buffer_load_data(context, &staging, 0, size, 0, data);
+    vulkan_buffer_copy_to(context, pool, fence, queue, staging.handle, 0, buffer->handle, offset, size);
+    vulkan_buffer_destroy(context, &staging);
+}
+
 b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* application_name) {
     // Function pointers.
     context.find_memory_index = find_memory_index;
@@ -208,6 +217,29 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
     }
 
     create_buffers(&context);
+
+    // TODO: temporary test code.
+    const u32 vert_count = 4;
+    vertex_3d verts[vert_count];
+    kzero_memory(verts, sizeof(vertex_3d) * vert_count);
+
+    verts[0].position.x = -0.5;
+    verts[0].position.y = -0.5;
+
+    verts[1].position.x = 0.5;
+    verts[1].position.y = 0.5;
+
+    verts[2].position.x = -0.5;
+    verts[2].position.y = 0.5;
+
+    verts[3].position.x = 0.5;
+    verts[3].position.y = -0.5;
+
+    const u32 index_count = 6;
+    u32 indices[index_count] = {0, 1, 2, 0, 3, 1};
+
+    upload_data_range(&context, context.device.graphics_command_pool, 0, context.device.graphics_queue, &context.object_vertex_buffer, 0, sizeof(vertex_3d) * vert_count, verts);
+    upload_data_range(&context, context.device.graphics_command_pool, 0, context.device.graphics_queue, &context.object_index_buffer, 0, sizeof(u32) * index_count, indices);
 
     KINFO("Vulkan renderer initialized successfully.");
     return true;
@@ -390,6 +422,16 @@ b8 vulkan_renderer_backend_begin_frame(renderer_backend* backend, f32 delta_time
         command_buffer,
         &context.main_renderpass,
         context.swapchain.framebuffers[context.image_index].handle);
+
+    // TODO: temporary test code.
+    vulkan_object_shader_use(&context, &context.object_shader);
+
+    VkDeviceSize offsets[1] = {0};
+    vkCmdBindVertexBuffers(command_buffer->handle, 0, 1, &context.object_vertex_buffer.handle, (VkDeviceSize*)offsets);
+
+    vkCmdBindIndexBuffer(command_buffer->handle, context.object_index_buffer.handle, 0, VK_INDEX_TYPE_UINT32);
+
+    vkCmdDrawIndexed(command_buffer->handle, 6, 1, 0, 0, 0);
 
     return true;
 }
@@ -646,4 +688,7 @@ b8 create_buffers(vulkan_context* context) {
         KERROR("Error creating vertex buffer.");
         return false;
     }
+    
+    context->geometry_index_offset = 0;
+    return true;
 }
