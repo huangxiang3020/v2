@@ -40,7 +40,7 @@ void regenerate_framebuffers(renderer_backend* backend, vulkan_swapchain* swapch
 b8 recreate_swapchain(renderer_backend* backend);
 
 void upload_data_range(vulkan_context* context, VkCommandPool pool, VkFence fence, VkQueue queue, vulkan_buffer* buffer, u64 offset, u64 size, void* data) {
-    VkBufferUsageFlagBits flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    VkBufferUsageFlags flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
     vulkan_buffer staging;
     vulkan_buffer_create(context, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, flags, true, &staging);
     vulkan_buffer_load_data(context, &staging, 0, size, 0, data);
@@ -424,16 +424,6 @@ b8 vulkan_renderer_backend_begin_frame(renderer_backend* backend, f32 delta_time
         command_buffer,
         &context.main_renderpass,
         context.swapchain.framebuffers[context.image_index].handle);
-
-    // TODO: temporary test code.
-    vulkan_object_shader_use(&context, &context.object_shader);
-
-    VkDeviceSize offsets[1] = {0};
-    vkCmdBindVertexBuffers(command_buffer->handle, 0, 1, &context.object_vertex_buffer.handle, (VkDeviceSize*)offsets);
-
-    vkCmdBindIndexBuffer(command_buffer->handle, context.object_index_buffer.handle, 0, VK_INDEX_TYPE_UINT32);
-
-    vkCmdDrawIndexed(command_buffer->handle, 6, 1, 0, 0, 0);
 
     return true;
 }
