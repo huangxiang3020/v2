@@ -206,7 +206,7 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
     // In flight fences should not yet exist at this point, so clear the list. These are stored in pointers
     // because the initial state should be 0, and will be 0 when not in use. Actual fences are not owned
     // by this list.
-    context.images_in_flight = darray_reserve(vulkan_fence, context.swapchain.image_count);
+    context.images_in_flight = darray_reserve(vulkan_fence*, context.swapchain.image_count);
     for (u32 i = 0; i < context.swapchain.image_count; i++) {
         context.images_in_flight[i] = 0;
     }
@@ -223,7 +223,7 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
     vertex_3d verts[vert_count];
     kzero_memory(verts, sizeof(vertex_3d) * vert_count);
 
-    const f32 f = 10.0f;
+    const f32 f = 1.0f;
 
     verts[0].position.x = -0.5 * f;
     verts[0].position.y = -0.5 * f;
