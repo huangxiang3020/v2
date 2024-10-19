@@ -4,6 +4,7 @@
 #include "core/logger.h"
 #include "math/kmath.h"
 #include "renderer_backend.h"
+#include "resources/resource_types.h"
 
 typedef struct renderer_system_state {
     renderer_backend backend;
@@ -11,6 +12,7 @@ typedef struct renderer_system_state {
     mat4 view;
     f32 near_clip;
     f32 far_clip;
+    texture default_texture;
 } renderer_system_state;
 
 static renderer_system_state* state_ptr;
@@ -38,11 +40,47 @@ b8 renderer_system_initialize(u64* memory_requirement, void* state, const char* 
     state_ptr->view = mat4_translation((vec3){0, 0, 30.0f});
     state_ptr->view = mat4_inverse(state_ptr->view);
 
+    KTRACE("Creating default texture...");
+    const u32 tex_dimension = 256;
+    const u32 channels = 4;
+    const u32 pixel_count = tex_dimension * tex_dimension;
+    u8 pixels[pixel_count * channels];
+    kset_memory(pixels, 255, sizeof(u8) * pixel_count * channels);
+
+    for (u64 row = 0; row < tex_dimension; row++) {
+        for (u64 col = 0; col < tex_dimension; col++) {
+            u64 index = (row * tex_dimension) + col;
+            u64 index_bpp = index * channels;
+            if (row % 2) {
+                if (col % 2) {
+                    pixels[index_bpp + 0] = 0;
+                    pixels[index_bpp + 1] = 0;
+                }
+            } else {
+                if (!(col % 2)) {
+                    pixels[index_bpp + 0] = 0;
+                    pixels[index_bpp + 1] = 0;
+                }
+            }
+        }
+    }
+
+    renderer_create_texture(
+        "default",
+        false,
+        tex_dimension,
+        tex_dimension,
+        4,
+        pixels,
+        false,
+        &state_ptr->default_texture);
+
     return true;
 }
 
 void renderer_system_shutdown(void* state) {
     if (state_ptr) {
+        renderer_destroy_texture(&state_ptr->default_texture);
         state_ptr->backend.shutdown(&state_ptr->backend);
     }
 
@@ -78,11 +116,12 @@ b8 renderer_draw_frame(render_packet* packet) {
     if (renderer_begin_frame(packet->delta_time)) {
         state_ptr->backend.update_global_state(state_ptr->projection, state_ptr->view, vec3_zero(), vec4_one(), 0);
 
-        static f32 angle = 0.01f;
-        angle += 0.001f;
-        quat rotation = quat_from_axis_angle(vec3_forward(), angle, false);
-        mat4 model = quat_to_rotation_matrix(rotation, vec3_zero());
-        state_ptr->backend.update_object(model);
+        mat4 model = mat4_translation((vec3){0, 0, 0});
+        geometry_render_data data = {};
+        data.object_id = 0;
+        data.model = model;
+        data.textures[0] = &state_ptr->default_texture;
+        state_ptr->backend.update_object(data);
 
         b8 result = renderer_end_frame(packet->delta_time);
 

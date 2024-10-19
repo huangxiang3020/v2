@@ -45,6 +45,8 @@ STATIC_ASSERT(sizeof(f64) == 8, "Expected f64 to be 8 bytes.");
 #define true 1
 #define false 0
 
+#define INVALID_ID 4294967295U
+
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 #define KPLATFORM_WINDOWS 1
 #ifndef _WIN64

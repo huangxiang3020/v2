@@ -155,7 +155,7 @@ void vulkan_image_copy_from_buffer(
     region.imageSubresource.layerCount = 1;
 
     region.imageExtent.width = image->width;
-    region.imageExtent.width = image->height;
+    region.imageExtent.height = image->height;
     region.imageExtent.depth = 1;
 
     vkCmdCopyBufferToImage(
