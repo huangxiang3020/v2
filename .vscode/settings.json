@@ -72,6 +72,7 @@
         "ostream": "c",
         "xiosbase": "c",
         "xlocmon": "c",
-        "xlocnum": "c"
+        "xlocnum": "c",
+        "stb_image.h": "c"
     }
 }
