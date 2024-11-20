@@ -7,7 +7,7 @@
 #include "core/logger.h"
 #include "math/math_types.h"
 #include "platform/platform.h"
-#include "shaders/vulkan_object_shader.h"
+#include "shaders/vulkan_material_shader.h"
 #include "vulkan_buffer.h"
 #include "vulkan_command_buffer.h"
 #include "vulkan_device.h"
@@ -212,7 +212,7 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
         context.images_in_flight[i] = 0;
     }
 
-    if (!vulkan_object_shader_create(&context, backend->default_diffuse, &context.object_shader)) {
+    if (!vulkan_object_shader_create(&context, &context.object_shader)) {
         KERROR("Error loading built-in basic_lighting shader.");
         return false;
     }
@@ -726,7 +726,7 @@ b8 create_buffers(vulkan_context* context) {
     return true;
 }
 
-void vulkan_renderer_create_texture(const char* name, b8 auto_release, i32 width, i32 height, i32 channel_count, const u8* pixels, b8 has_transparency, texture* out_texture) {
+void vulkan_renderer_create_texture(const char* name, i32 width, i32 height, i32 channel_count, const u8* pixels, b8 has_transparency, texture* out_texture) {
     out_texture->width = width;
     out_texture->height = height;
     out_texture->channel_count = channel_count;

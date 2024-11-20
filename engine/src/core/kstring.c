@@ -6,6 +6,10 @@
 
 #include "core/kmemory.h"
 
+#ifndef _MSC_VER
+#include <strings.h>
+#endif
+
 u64 string_length(const char* str) {
     return strlen(str);
 }
@@ -19,6 +23,14 @@ char* string_dulicate(const char* str) {
 
 b8 strings_equal(const char* str0, const char* str1) {
     return strcmp(str0, str1) == 0;
+}
+
+b8 strings_equali(const char* str0, const char* str1) {
+#if defined(__GNUC__)
+    return strcasecmp(str0, str1) == 0;
+#elif (defined _MSC_VER)
+    return _strcmpi(str0, str1) == 0;
+#endif
 }
 
 i32 string_format(char* dest, const char* format, ...) {

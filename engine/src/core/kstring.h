@@ -8,6 +8,8 @@ KAPI char* string_dulicate(const char* str);
 
 KAPI b8 strings_equal(const char* str0, const char* str1);
 
+KAPI b8 strings_equali(const char* str0, const char* str1);
+
 KAPI i32 string_format(char* dest, const char* format, ...);
 
 /**

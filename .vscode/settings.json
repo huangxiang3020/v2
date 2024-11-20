@@ -66,7 +66,7 @@
         "xutility": "c",
         "xtr1common": "c",
         "stat.h": "c",
-        "vulkan_object_shader.h": "c",
+        "vulkan_material_shader.h": "c",
         "format": "c",
         "istream": "c",
         "ostream": "c",
