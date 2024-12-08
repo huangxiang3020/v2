@@ -212,7 +212,7 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
         context.images_in_flight[i] = 0;
     }
 
-    if (!vulkan_object_shader_create(&context, &context.object_shader)) {
+    if (!vulkan_material_shader_create(&context, &context.material_shader)) {
         KERROR("Error loading built-in basic_lighting shader.");
         return false;
     }
@@ -252,11 +252,6 @@ b8 vulkan_renderer_backend_initialize(renderer_backend* backend, const char* app
     upload_data_range(&context, context.device.graphics_command_pool, 0, context.device.graphics_queue, &context.object_vertex_buffer, 0, sizeof(vertex_3d) * vert_count, verts);
     upload_data_range(&context, context.device.graphics_command_pool, 0, context.device.graphics_queue, &context.object_index_buffer, 0, sizeof(u32) * index_count, indices);
 
-    u32 object_id = 0;
-    if (!vulkan_object_shader_acquire_resources(&context, &context.object_shader, &object_id)) {
-        KERROR("Failed to acqure shader resources.");
-    }
-
     KINFO("Vulkan renderer initialized successfully.");
     return true;
 }
@@ -269,7 +264,7 @@ void vulkan_renderer_backend_shutdown(renderer_backend* backend) {
     vulkan_buffer_destroy(&context, &context.object_vertex_buffer);
     vulkan_buffer_destroy(&context, &context.object_index_buffer);
 
-    vulkan_object_shader_destroy(&context, &context.object_shader);
+    vulkan_material_shader_destroy(&context, &context.material_shader);
 
     // Sync objects
     for (u8 i = 0; i < context.swapchain.max_frames_in_flight; ++i) {
@@ -446,12 +441,12 @@ b8 vulkan_renderer_backend_begin_frame(renderer_backend* backend, f32 delta_time
 void vulkan_renderer_update_global_state(mat4 projection, mat4 view, vec3 view_position, vec4 ambient_colour, i32 mode) {
     vulkan_command_buffer* command_buffer = &context.graphics_command_buffers[context.image_index];
 
-    vulkan_object_shader_use(&context, &context.object_shader);
+    vulkan_material_shader_use(&context, &context.material_shader);
 
-    context.object_shader.global_ubo.projection = projection;
-    context.object_shader.global_ubo.view = view;
+    context.material_shader.global_ubo.projection = projection;
+    context.material_shader.global_ubo.view = view;
 
-    vulkan_object_shader_update_global_state(&context, &context.object_shader, context.frame_delta_time);
+    vulkan_material_shader_update_global_state(&context, &context.material_shader, context.frame_delta_time);
 }
 
 b8 vulkan_renderer_backend_end_frame(renderer_backend* backend, f32 delta_time) {
@@ -526,9 +521,9 @@ b8 vulkan_renderer_backend_end_frame(renderer_backend* backend, f32 delta_time) 
 void vulkan_renderer_backend_update_object(geometry_render_data data) {
     vulkan_command_buffer* command_buffer = &context.graphics_command_buffers[context.image_index];
 
-    vulkan_object_shader_update_object(&context, &context.object_shader, data);
+    vulkan_material_shader_update_object(&context, &context.material_shader, data);
 
-    vulkan_object_shader_use(&context, &context.object_shader);
+    vulkan_material_shader_use(&context, &context.material_shader);
 
     VkDeviceSize offsets[1] = {0};
     vkCmdBindVertexBuffers(command_buffer->handle, 0, 1, &context.object_vertex_buffer.handle, (VkDeviceSize*)offsets);
@@ -726,15 +721,10 @@ b8 create_buffers(vulkan_context* context) {
     return true;
 }
 
-void vulkan_renderer_create_texture(const char* name, i32 width, i32 height, i32 channel_count, const u8* pixels, b8 has_transparency, texture* out_texture) {
-    out_texture->width = width;
-    out_texture->height = height;
-    out_texture->channel_count = channel_count;
-    out_texture->generation = INVALID_ID;
-
-    out_texture->internal_data = (vulkan_texture_data*)kallocate(sizeof(vulkan_texture_data), MEMORY_TAG_TEXTURE);
-    vulkan_texture_data* data = (vulkan_texture_data*)out_texture->internal_data;
-    VkDeviceSize image_size = width * height * channel_count;
+void vulkan_renderer_create_texture(const u8* pixels, texture* texture) {
+    texture->internal_data = (vulkan_texture_data*)kallocate(sizeof(vulkan_texture_data), MEMORY_TAG_TEXTURE);
+    vulkan_texture_data* data = (vulkan_texture_data*)texture->internal_data;
+    VkDeviceSize image_size = texture->width * texture->height * texture->channel_count;
 
     VkFormat image_format = VK_FORMAT_R8G8B8A8_UNORM;
 
@@ -747,8 +737,8 @@ void vulkan_renderer_create_texture(const char* name, i32 width, i32 height, i32
     vulkan_image_create(
         &context,
         VK_IMAGE_TYPE_2D,
-        width,
-        height,
+        texture->width,
+        texture->height,
         image_format,
         VK_IMAGE_TILING_OPTIMAL,
         VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
@@ -807,8 +797,7 @@ void vulkan_renderer_create_texture(const char* name, i32 width, i32 height, i32
         return;
     }
 
-    out_texture->has_transparency = has_transparency;
-    out_texture->generation++;
+    texture->generation++;
 }
 void vulkan_renderer_destroy_texture(texture* texture) {
     vkDeviceWaitIdle(context.device.logical_device);
@@ -823,4 +812,31 @@ void vulkan_renderer_destroy_texture(texture* texture) {
     }
 
     kzero_memory(texture, sizeof(struct texture));
+}
+
+b8 vulkan_renderer_create_material(struct material* material) {
+    if (material) {
+        if (!vulkan_material_shader_acquire_resources(&context, &context.material_shader, material)) {
+            KERROR("vulkan_renderer_create_material - Failed to acquire shader resources.");
+            return false;
+        }
+
+        KTRACE("Renderer: Material created.");
+        return true;
+    }
+
+    KERROR("vulkan_renderer_create_material called with nullptr. Creation failed.");
+    return false;
+}
+
+void vulkan_renderer_destroy_material(struct material* material) {
+    if (material) {
+        if (material->internal_id != INVALID_ID) {
+            vulkan_material_shader_release_resources(&context, &context.material_shader, material);
+        } else {
+            KWARN("vulkan_renderer_destroy_material called with internal_id=INVALID_ID. Nothing was done.");
+        }
+    } else {
+        KWARN("vulkan_renderer_destroy_material called with nullptr. Nothing was done.");
+    }
 }

@@ -18,7 +18,7 @@ KAPI b8 filesystem_open(const char* path, file_modes mode, b8 binary, file_handl
 
 KAPI void filesystem_close(file_handle* handle);
 
-KAPI b8 filesystem_read_line(file_handle* handle, char** line_buf);
+KAPI b8 filesystem_read_line(file_handle* handle,  u64 max_length, char** line_buf, u64* out_line_length);
 
 KAPI b8 filesystem_write_line(file_handle* handle, const char* text);
 
