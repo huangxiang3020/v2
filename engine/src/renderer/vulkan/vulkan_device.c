@@ -81,13 +81,34 @@ b8 vulkan_device_create(vulkan_context* context) {
     VkPhysicalDeviceFeatures device_features = {};
     device_features.samplerAnisotropy = VK_TRUE;
 
+    b8 portability_required = false;
+    u32 available_extension_count = 0;
+    VkExtensionProperties* available_extensions = 0;
+    VK_CHECK(vkEnumerateDeviceExtensionProperties(context->device.physical_device, 0, &available_extension_count, 0));
+    if (available_extension_count != 0) {
+        available_extensions = kallocate(sizeof(VkExtensionProperties) * available_extension_count, MEMORY_TAG_RENDERER);
+        VK_CHECK(vkEnumerateDeviceExtensionProperties(context->device.physical_device, 0, &available_extension_count, available_extensions));
+        for (u32 i = 0; i < available_extension_count; ++i) {
+            if (strings_equal(available_extensions[i].extensionName, "VK_KHR_portability_subset")) {
+                KINFO("Adding required extension 'VK_KHR_portability_subset'.");
+                portability_required = true;
+                break;
+            }
+        }
+    }
+    kfree(available_extensions, sizeof(VkExtensionProperties) * available_extension_count, MEMORY_TAG_RENDERER);
+
+    u32 extension_count = portability_required ? 2 : 1;
+    const char** extension_names = portability_required
+                                       ? (const char* [2]){VK_KHR_SWAPCHAIN_EXTENSION_NAME, "VK_KHR_portability_subset"}
+                                       : (const char* [1]){VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+
     VkDeviceCreateInfo device_create_info = {VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
     device_create_info.queueCreateInfoCount = index_count;
     device_create_info.pQueueCreateInfos = queue_create_infos;
     device_create_info.pEnabledFeatures = &device_features;
-    device_create_info.enabledExtensionCount = 1;
-    const char* extension_names = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
-    device_create_info.ppEnabledExtensionNames = &extension_names;
+    device_create_info.enabledExtensionCount = extension_count;
+    device_create_info.ppEnabledExtensionNames = extension_names;
 
     // Deprecated and ignored, so pass nothing.
     device_create_info.enabledLayerCount = 0;
@@ -280,6 +301,17 @@ b8 select_physical_device(vulkan_context* context) {
         VkPhysicalDeviceMemoryProperties memory;
         vkGetPhysicalDeviceMemoryProperties(physical_devices[i], &memory);
 
+        b8 supports_device_local_host_visible = false;
+        for (u32 i = 0; i < memory.memoryTypeCount; ++i) {
+            // Check each memory type to see if its bit is set to 1.
+            if (
+                ((memory.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) != 0) &&
+                ((memory.memoryTypes[i].propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) != 0)) {
+                supports_device_local_host_visible = true;
+                break;
+            }
+        }
+
         // TODO: These requirements should probably be driven by engine
         // configuration
         vulkan_physical_device_requirements requirements = {};
@@ -289,7 +321,11 @@ b8 select_physical_device(vulkan_context* context) {
         // NOTE: Enable this if compute will be required.
         // requirements.compute = true;
         requirements.sampler_anisotropy = true;
+#if KPLATFORM_APPLE
         requirements.discrete_gpu = false;
+#else
+        requirements.discrete_gpu = true;
+#endif
         requirements.device_extension_names = darray_create(const char*);
         darray_push(requirements.device_extension_names, &VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
@@ -358,6 +394,7 @@ b8 select_physical_device(vulkan_context* context) {
             context->device.properties = properties;
             context->device.features = features;
             context->device.memory = memory;
+            context->device.supports_device_local_host_visible = supports_device_local_host_visible;
             break;
         }
     }

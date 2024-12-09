@@ -144,11 +144,12 @@ b8 vulkan_material_shader_create(vulkan_context* context, vulkan_material_shader
         return false;
     }
 
+    u32 device_local_bits = context->device.supports_device_local_host_visible ? VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT : 0;
     if (!vulkan_buffer_create(
             context,
             sizeof(global_uniform_object),
             VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            device_local_bits | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
             true,
             &out_shader->global_uniform_buffer)) {
         KERROR("Vulkan buffer creation failed for object shader.");
@@ -170,7 +171,7 @@ b8 vulkan_material_shader_create(vulkan_context* context, vulkan_material_shader
             context,
             sizeof(material_uniform_object),
             VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            device_local_bits | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
             true,
             &out_shader->object_uniform_buffer)) {
         KERROR("Material instance buffer creation failed for shader.");
@@ -250,7 +251,7 @@ void vulkan_material_shader_update_object(vulkan_context* context, struct vulkan
     u32 descriptor_index = 0;
 
     u32 range = sizeof(material_uniform_object);
-    u64 offset = sizeof(material_uniform_object) * data.material->internal_id;
+    u64 offset = 0;
     material_uniform_object obo;
 
     static f32 accumulator = 0.0f;
