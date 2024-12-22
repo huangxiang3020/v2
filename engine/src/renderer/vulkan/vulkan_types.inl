@@ -147,6 +147,19 @@ typedef struct vulkan_material_shader_instance_state {
 
 #define VULKAN_MAX_MATERIAL_COUNT 1024
 
+#define VULKAN_MAX_GEOMETRY_COUNT 4096
+
+typedef struct vulkan_geometry_data {
+    u32 id;
+    u32 generation;
+    u32 vertex_count;
+    u32 vertex_size;
+    u32 vertex_buffer_offset;
+    u32 index_count;
+    u32 index_size;
+    u32 index_buffer_offset;
+} vulkan_geometry_data;
+
 typedef struct vulkan_material_shader {
     // vertex, fragment
     vulkan_shader_stage stages[MATERIAL_SHADER_STAGE_COUNT];
@@ -224,6 +237,7 @@ typedef struct vulkan_context {
     vulkan_material_shader material_shader;
     u64 geometry_vertex_offset;
     u64 geometry_index_offset;
+    vulkan_geometry_data geometries[VULKAN_MAX_GEOMETRY_COUNT];
     i32 (*find_memory_index)(u32 type_filter, u32 property_flags);
 
 } vulkan_context;
