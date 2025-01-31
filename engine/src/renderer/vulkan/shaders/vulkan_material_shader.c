@@ -260,7 +260,7 @@ void vulkan_material_shader_apply_material(vulkan_context* context, struct vulka
         u32 descriptor_index = 0;
 
         u32 range = sizeof(material_uniform_object);
-        u64 offset = 0;
+        u64 offset = sizeof(material_uniform_object) * material->internal_id;
         material_uniform_object obo;
 
         static f32 accumulator = 0.0f;

@@ -324,7 +324,7 @@ b8 select_physical_device(vulkan_context* context) {
 #if KPLATFORM_APPLE
         requirements.discrete_gpu = false;
 #else
-        requirements.discrete_gpu = true;
+        requirements.discrete_gpu = false;
 #endif
         requirements.device_extension_names = darray_create(const char*);
         darray_push(requirements.device_extension_names, &VK_KHR_SWAPCHAIN_EXTENSION_NAME);
