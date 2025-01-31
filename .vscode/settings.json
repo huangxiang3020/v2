@@ -98,6 +98,9 @@
         "algorithm": "c",
         "darray.h": "c",
         "linear_allocator.h": "c",
-        "input.h": "c"
+        "input.h": "c",
+        "text_loader.h": "c",
+        "resource_system.h": "c",
+        "utility": "c"
     }
 }
